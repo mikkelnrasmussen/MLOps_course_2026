@@ -1,8 +1,9 @@
 import matplotlib.pyplot as plt
 import torch
 import typer
+
 from data import corrupt_mnist
-from model import SimpleModel
+from mlops_course.model import SimpleModel
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu")
 
@@ -20,7 +21,7 @@ def train(lr: float = 1e-3, batch_size: int = 32, epochs: int = 10) -> None:
     loss_fn = torch.nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
 
-    statistics = {"train_loss": [], "train_accuracy": []}
+    statistics: dict = {"train_loss": [], "train_accuracy": []}
     for epoch in range(epochs):
         model.train()
         for i, (img, target) in enumerate(train_dataloader):
