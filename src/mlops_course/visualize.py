@@ -2,7 +2,7 @@
 import matplotlib.pyplot as plt
 import torch
 import typer
-from my_project_name.model import MyAwesomeModel
+from model import SimpleModel
 from sklearn.decomposition import PCA
 from sklearn.manifold import TSNE
 
@@ -11,10 +11,10 @@ DEVICE = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.ba
 
 def visualize(model_checkpoint: str, figure_name: str = "embeddings.png") -> None:
     """Visualize model predictions."""
-    model: torch.nn.Module = MyAwesomeModel().to(DEVICE)
+    model: torch.nn.Module = SimpleModel().to(DEVICE)
     model.load_state_dict(torch.load(model_checkpoint))
     model.eval()
-    model.fc = torch.nn.Identity()
+    model.fc1 = torch.nn.Identity()
 
     test_images = torch.load("data/processed/test_images.pt")
     test_target = torch.load("data/processed/test_target.pt")
@@ -24,9 +24,11 @@ def visualize(model_checkpoint: str, figure_name: str = "embeddings.png") -> Non
     with torch.inference_mode():
         for batch in torch.utils.data.DataLoader(test_dataset, batch_size=32):
             images, target = batch
+            images = images.to(DEVICE)
+            target = target.to(DEVICE)
             predictions = model(images)
-            embeddings.append(predictions)
-            targets.append(target)
+            embeddings.append(predictions.cpu())
+            targets.append(target.cpu())
         embeddings = torch.cat(embeddings).numpy()
         targets = torch.cat(targets).numpy()
 
