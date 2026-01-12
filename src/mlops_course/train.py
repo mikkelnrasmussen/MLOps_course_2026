@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import torch
 import typer
 
-from data import corrupt_mnist
+from mlops_course.data import corrupt_mnist
 from mlops_course.model import SimpleModel
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu")
