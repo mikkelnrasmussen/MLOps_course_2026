@@ -1,0 +1,4 @@
+[core]
+    remote = storage
+['remote "storage"']
+    url = ssh://minra@login.healthtech.dtu.dk/home/people/minra/mlops_course/storage
