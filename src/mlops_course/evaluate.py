@@ -1,4 +1,3 @@
-
 import torch
 import typer
 from data import corrupt_mnist
