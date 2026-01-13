@@ -6,6 +6,29 @@ WINDOWS = os.name == "nt"
 PROJECT_NAME = "mlops_course"
 PYTHON_VERSION = "3.12"
 
+# General
+@task
+def python(ctx):
+    """ """
+    ctx.run("which python" if os.name != "nt" else "where python")
+
+# Git commands
+@task
+def git(ctx: Context, message: str) -> None:
+    """Commit and push changes to git."""
+    ctx.run("git add .", echo=True, pty=not WINDOWS)
+    ctx.run(f'git commit -m "{message}"', echo=True, pty=not WINDOWS)
+    ctx.run("git push", echo=True, pty=not WINDOWS)
+
+
+# DVC commands
+@task
+def dvc(ctx, folder="data", message="Add new data"):
+    ctx.run(f"uvr dvc add {folder}")
+    ctx.run(f"git add {folder}.dvc .gitignore")
+    ctx.run(f"git commit -m '{message}'")
+    ctx.run(f"git push")
+    ctx.run(f"uvr dvc push")
 
 # Project commands
 @task
@@ -13,12 +36,24 @@ def preprocess_data(ctx: Context) -> None:
     """Preprocess data."""
     ctx.run(f"uv run src/{PROJECT_NAME}/data.py data/raw data/processed", echo=True, pty=not WINDOWS)
 
+@task
+def pull_data(ctx):
+    ctx.run("uvr dvc pull")
+
+# @task(pull_data)
+# def train(ctx):
+#     ctx.run("my_cli train")
+
 
 @task
 def train(ctx: Context) -> None:
     """Train model."""
     ctx.run(f"uv run src/{PROJECT_NAME}/train.py", echo=True, pty=not WINDOWS)
 
+@task
+def train_vae(ctx: Context) -> None:
+    """Train VAE model."""
+    ctx.run(f"uv run src/{PROJECT_NAME}/vae_mnist.py", echo=True, pty=not WINDOWS)
 
 @task
 def evaluate(ctx: Context) -> None:
