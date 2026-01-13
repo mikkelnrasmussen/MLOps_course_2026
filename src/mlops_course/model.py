@@ -5,13 +5,21 @@ from torch import nn
 class SimpleModel(nn.Module):
     """My awesome model."""
 
-    def __init__(self) -> None:
+    def __init__(
+            self, 
+            channels_in: int = 1,
+            hidden_dims: list = [32, 64, 128],
+            num_classes: int = 10,
+            kernel_size: int = 3,
+            stride: int = 1,
+            dropout_rate: float = 0.5,
+        ) -> None:
         super().__init__()
-        self.conv1 = nn.Conv2d(1, 32, 3, 1)
-        self.conv2 = nn.Conv2d(32, 64, 3, 1)
-        self.conv3 = nn.Conv2d(64, 128, 3, 1)
-        self.dropout = nn.Dropout(0.5)
-        self.fc1 = nn.Linear(128, 10)
+        self.conv1 = nn.Conv2d(channels_in, hidden_dims[0], kernel_size, stride)
+        self.conv2 = nn.Conv2d(hidden_dims[0], hidden_dims[1], kernel_size, stride)
+        self.conv3 = nn.Conv2d(hidden_dims[1], hidden_dims[2], kernel_size, stride)
+        self.dropout = nn.Dropout(dropout_rate)
+        self.fc1 = nn.Linear(hidden_dims[2], num_classes)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Forward pass."""
