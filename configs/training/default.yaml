@@ -1,0 +1,5 @@
+seed: 67
+batch_size: 32
+lr: 1e-3
+epochs: 10
+output_file: "models/model.pth"

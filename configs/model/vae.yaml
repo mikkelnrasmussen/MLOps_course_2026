@@ -1,0 +1,7 @@
+batch_size: 64
+x_dim: 784
+hidden_dim: 256
+latent_dim: 20
+lr: 1e-4
+n_epochs: 10
+seed: 67

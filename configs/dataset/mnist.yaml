@@ -1,0 +1,4 @@
+name: 'MNIST'
+dataset_path: data/raw
+figure_path: reports/figures
+model_path: models
