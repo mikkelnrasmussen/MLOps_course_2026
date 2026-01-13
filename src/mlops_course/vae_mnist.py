@@ -18,6 +18,7 @@ from torchvision.utils import save_image  # type: ignore[import-untyped]
 
 log = logging.getLogger(__name__)
 
+
 # creating a logger
 @hydra.main(version_base=None, config_path=f"{os.getcwd()}/configs", config_name="defaults.yaml")
 def train(config: DictConfig) -> None:
@@ -57,7 +58,6 @@ def train(config: DictConfig) -> None:
         reproduction_loss = nn.functional.binary_cross_entropy(x_hat, x, reduction="sum")
         kld = -0.5 * torch.sum(1 + log_var - mean.pow(2) - log_var.exp())
         return reproduction_loss + kld
-
 
     log.info("Start training VAE...")
     model.train()
@@ -104,7 +104,9 @@ def train(config: DictConfig) -> None:
         noise = torch.randn(hparams["batch_size"], hparams["latent_dim"]).to(device)
         generated_images = decoder(noise)
 
-    save_image(generated_images.view(hparams["batch_size"], 1, 28, 28), f"{data_cfg['figure_path']}/generated_sample.png")
+    save_image(
+        generated_images.view(hparams["batch_size"], 1, 28, 28), f"{data_cfg['figure_path']}/generated_sample.png"
+    )
 
 
 if __name__ == "__main__":

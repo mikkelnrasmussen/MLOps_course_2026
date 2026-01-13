@@ -1,4 +1,3 @@
-
 import logging
 import os
 
@@ -15,6 +14,7 @@ from mlops_course.model import SimpleModel
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu")
 
 log = logging.getLogger(__name__)
+
 
 @hydra.main(version_base=None, config_path=f"{os.getcwd()}/configs", config_name="defaults.yaml")
 def train(config: DictConfig) -> None:

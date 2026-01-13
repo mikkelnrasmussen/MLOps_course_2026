@@ -6,7 +6,7 @@ from numpy.typing import NDArray
 from typing import List
 
 from sklearn.decomposition import PCA  # type: ignore[import-untyped]
-from sklearn.manifold import TSNE      # type: ignore[import-untyped]
+from sklearn.manifold import TSNE  # type: ignore[import-untyped]
 
 from mlops_course.model import SimpleModel
 
