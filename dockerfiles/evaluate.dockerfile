@@ -11,9 +11,6 @@ COPY uv.lock ./uv.lock
 COPY pyproject.toml ./pyproject.toml
 COPY README.md ./README.md
 COPY LICENSE ./LICENSE
-RUN mkdir outputs
-RUN mkdir reports
-RUN mkdir reports/figures
 
 # Enable safe use of cached wheels/sdists inside Docker layers
 ENV UV_LINK_MODE=copy
@@ -24,10 +21,9 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 
 # Copy application code and runtime data
 COPY src/ ./src/
-COPY data/ ./data/
 
 # Install the project itself (also benefits from the same cache mount)
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --locked
 
-ENTRYPOINT ["uv", "run", "src/mlops_course/train.py"]
+ENTRYPOINT ["uv", "run", "python", "src/mlops_course/evaluate.py"]
