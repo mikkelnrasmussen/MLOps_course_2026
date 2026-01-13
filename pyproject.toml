@@ -28,7 +28,8 @@ dependencies = [
     "pygit2>=1.19.1",
     "scikit-learn>=1.8.0",
     "torch==2.6.0",
-    "typer==0.15.1",
+    "torchvision>=0.21.0",
+    "typer>=0.15.4",
     "uvicorn==0.34.0",
 ]
 
@@ -64,3 +65,10 @@ lint.select = ["I"]
 
 [tool.coverage.run]
 omit = ["tests/*"]
+
+[project.scripts]
+train = "mlops_course.train:train"
+evaluate = "mlops_course.evaluate:evaluate"
+greetings = "mlops_course.iris_classifier:app"
+train_vae = "mlops_course.vae_mnist:train"
+reproducibility_tester = "mlops_course.reproducibility_tester:main"
