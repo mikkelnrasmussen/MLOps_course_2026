@@ -1,10 +1,10 @@
-import matplotlib.pyplot as plt
-import torch
-import typer
-import numpy as np
-from numpy.typing import NDArray
 from typing import List
 
+import matplotlib.pyplot as plt
+import numpy as np
+import torch
+import typer
+from numpy.typing import NDArray
 from sklearn.decomposition import PCA  # type: ignore[import-untyped]
 from sklearn.manifold import TSNE  # type: ignore[import-untyped]
 

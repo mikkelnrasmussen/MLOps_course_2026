@@ -1,12 +1,12 @@
 import logging
 import os
+from typing import Annotated
 
 import hydra
 import matplotlib.pyplot as plt
-from typing import Annotated
 import torch
 import typer
-from omegaconf import OmegaConf, DictConfig
+from omegaconf import DictConfig, OmegaConf
 
 from mlops_course.data import corrupt_mnist
 from mlops_course.model import SimpleModel

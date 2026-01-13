@@ -9,12 +9,13 @@ import os
 import hydra
 import torch
 import torch.nn as nn
-from mlops_course.vae_model import Decoder, Encoder, Model
-from omegaconf import OmegaConf, DictConfig
-from torch.utils.data import DataLoader
 import torchvision.transforms as transforms  # type: ignore[import-untyped]
+from omegaconf import DictConfig, OmegaConf
+from torch.utils.data import DataLoader
 from torchvision.datasets import MNIST  # type: ignore[import-untyped]
 from torchvision.utils import save_image  # type: ignore[import-untyped]
+
+from mlops_course.vae_model import Decoder, Encoder, Model
 
 log = logging.getLogger(__name__)
 

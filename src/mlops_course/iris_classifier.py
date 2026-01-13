@@ -1,6 +1,6 @@
 import pickle
-from typing import Annotated, Any
 from pathlib import Path
+from typing import Annotated, Any
 
 import typer
 from sklearn.datasets import load_breast_cancer  # type: ignore[import-untyped]
