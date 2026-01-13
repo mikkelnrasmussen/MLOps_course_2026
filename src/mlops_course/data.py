@@ -1,3 +1,4 @@
+from typing import List
 import torch
 import typer
 
@@ -9,12 +10,14 @@ def normalize(images: torch.Tensor) -> torch.Tensor:
 
 def preprocess_data(raw_dir: str, processed_dir: str) -> None:
     """Process raw data and save it to processed directory."""
-    train_images, train_target = [], []
+    train_images_list: List[torch.Tensor] = []
+    train_target_list: List[torch.Tensor] = []
     for i in range(6):
-        train_images.append(torch.load(f"{raw_dir}/train_images_{i}.pt"))
-        train_target.append(torch.load(f"{raw_dir}/train_target_{i}.pt"))
-    train_images = torch.cat(train_images)
-    train_target = torch.cat(train_target)
+        train_images_list.append(torch.load(f"{raw_dir}/train_images_{i}.pt"))
+        train_target_list.append(torch.load(f"{raw_dir}/train_target_{i}.pt"))
+
+    train_images: torch.Tensor = torch.cat(train_images_list)
+    train_target: torch.Tensor = torch.cat(train_target_list)
 
     test_images: torch.Tensor = torch.load(f"{raw_dir}/test_images.pt")
     test_target: torch.Tensor = torch.load(f"{raw_dir}/test_target.pt")
