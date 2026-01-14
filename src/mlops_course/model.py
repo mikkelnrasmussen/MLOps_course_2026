@@ -1,8 +1,11 @@
+from lightning import LightningModule
 import torch
-from torch import nn
+from torch import nn, optim
 
 
-class SimpleModel(nn.Module):
+
+
+class SimpleModel(LightningModule):
     """My awesome model."""
 
     def __init__(
@@ -13,6 +16,7 @@ class SimpleModel(nn.Module):
         kernel_size: int = 3,
         stride: int = 1,
         dropout_rate: float = 0.5,
+        lr: float = 1e-3,
     ) -> None:
         super().__init__()
         self.conv1 = nn.Conv2d(channels_in, hidden_dims[0], kernel_size, stride)
@@ -20,6 +24,8 @@ class SimpleModel(nn.Module):
         self.conv3 = nn.Conv2d(hidden_dims[1], hidden_dims[2], kernel_size, stride)
         self.dropout = nn.Dropout(dropout_rate)
         self.fc1 = nn.Linear(hidden_dims[2], num_classes)
+        self.lr = lr
+        self.loss_fn = nn.CrossEntropyLoss()
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Forward pass."""
@@ -32,6 +38,16 @@ class SimpleModel(nn.Module):
         x = torch.flatten(x, 1)
         x = self.dropout(x)
         return self.fc1(x)
+
+    def training_step(self, batch):
+        """Training step."""
+        img, target = batch
+        y_pred = self(img)
+        return self.loss_fn(y_pred, target)
+
+    def configure_optimizers(self):
+        """Configure optimizer."""
+        return torch.optim.Adam(self.parameters(), lr=self.lr)
 
 
 if __name__ == "__main__":
