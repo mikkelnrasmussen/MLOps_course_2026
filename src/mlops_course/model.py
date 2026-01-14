@@ -1,8 +1,9 @@
 from lightning import LightningModule
 import torch
 from torch import nn, optim
-
-
+import torchmetrics
+import torchvision
+import wandb
 
 
 class SimpleModel(LightningModule):
@@ -19,13 +20,17 @@ class SimpleModel(LightningModule):
         lr: float = 1e-3,
     ) -> None:
         super().__init__()
+        self.save_hyperparameters()
+        
         self.conv1 = nn.Conv2d(channels_in, hidden_dims[0], kernel_size, stride)
         self.conv2 = nn.Conv2d(hidden_dims[0], hidden_dims[1], kernel_size, stride)
         self.conv3 = nn.Conv2d(hidden_dims[1], hidden_dims[2], kernel_size, stride)
         self.dropout = nn.Dropout(dropout_rate)
         self.fc1 = nn.Linear(hidden_dims[2], num_classes)
-        self.lr = lr
+
         self.loss_fn = nn.CrossEntropyLoss()
+
+        self.accuracy = torchmetrics.classification.Accuracy(task="multiclass", num_classes=num_classes)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Forward pass."""
@@ -38,16 +43,40 @@ class SimpleModel(LightningModule):
         x = torch.flatten(x, 1)
         x = self.dropout(x)
         return self.fc1(x)
-
-    def training_step(self, batch):
-        """Training step."""
+    
+    def evaluate(self, batch, stage=None):
         img, target = batch
-        y_pred = self(img)
-        return self.loss_fn(y_pred, target)
+        logits = self(img)
+        loss = self.loss_fn(logits, target)
+        preds = torch.argmax(logits, dim=1)
+        acc = self.accuracy(preds, target)
+
+        if stage:
+            self.log(f"{stage}_loss", loss, prog_bar=True)
+            self.log(f"{stage}_acc", acc, prog_bar=True)
+        
+        return loss
+    
+    def training_step(self, batch, batch_idx):
+        """Training step."""
+        if batch_idx % 200 == 0 and self.logger is not None and hasattr(self.logger, "experiment"):
+            x, _ = batch
+            grid = torchvision.utils.make_grid(x[:16].detach().cpu(), nrow=4, normalize=True)
+            self.logger.experiment.log(
+                {"train/samples": wandb.Image(grid, caption="Train batch samples")},
+                step=int(self.global_step),
+            )
+        return self.evaluate(batch, "train")
+
+    def validation_step(self, batch, batch_idx):
+        return self.evaluate(batch, "val")
+    
+    def test_step(self, batch, batch_idx):
+        return self.evaluate(batch, "test")
 
     def configure_optimizers(self):
         """Configure optimizer."""
-        return torch.optim.Adam(self.parameters(), lr=self.lr)
+        return optim.Adam(self.parameters(), lr=self.hparams.lr)
 
 
 if __name__ == "__main__":
