@@ -1,14 +1,14 @@
 import logging
 import os
-from typing import Annotated
 
 import hydra
 import matplotlib.pyplot as plt
-from loguru import logger
+from loguru import logger as loguru_logger
 import torch
-import torchvision
+from lightning import Trainer, seed_everything
+from lightning.pytorch.callbacks import ModelCheckpoint, EarlyStopping
+from lightning.pytorch.loggers import WandbLogger
 from omegaconf import DictConfig, OmegaConf
-from sklearn.metrics import RocCurveDisplay, accuracy_score, f1_score, precision_score, recall_score
 import wandb
 
 from mlops_course.data import corrupt_mnist
@@ -18,27 +18,23 @@ DEVICE = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.ba
 
 log = logging.getLogger(__name__)
 
-
 @hydra.main(version_base=None, config_path=f"{os.getcwd()}/configs", config_name="defaults.yaml")
 def train(config: DictConfig) -> None:
-    """Train a model on MNIST."""
-    # Get the path to the hydra output directory
     hydra_path = hydra.core.hydra_config.HydraConfig.get().runtime.output_dir
+    loguru_logger.add(os.path.join(hydra_path, "train.log"))
 
-    # Add a log file to the logger
-    logger.add(os.path.join(hydra_path, "train.log"))
-
-    log.info(f"configuration: \n {OmegaConf.to_yaml(config)}")
+    log.info(f"configuration:\n{OmegaConf.to_yaml(config)}")
     model_cfg = config.model
     train_cfg = config.training
-    torch.manual_seed(train_cfg["seed"])
 
-    resolved_cfg = OmegaConf.to_container(config, resolve=True, throw_on_missing=True)
-    run = wandb.init(
-        project="MLOps_course",
-        config=resolved_cfg
-    )
+    seed_everything(train_cfg.seed, workers=True)
 
+    # Data
+    train_set, val_set = corrupt_mnist()
+    train_loader = torch.utils.data.DataLoader(train_set, batch_size=train_cfg.batch_size, shuffle=True)
+    val_loader = torch.utils.data.DataLoader(val_set, batch_size=train_cfg.batch_size, shuffle=False)
+
+    # Model 
     model = SimpleModel(
         channels_in=model_cfg.channels_in,
         hidden_dims=model_cfg.hidden_dims,
@@ -46,150 +42,80 @@ def train(config: DictConfig) -> None:
         kernel_size=model_cfg.kernel_size,
         stride=model_cfg.stride,
         dropout_rate=model_cfg.dropout_rate,
-    ).to(DEVICE)
-    train_set, val_set = corrupt_mnist()
+        lr=train_cfg.lr,
+    )
 
-    train_dataloader = torch.utils.data.DataLoader(train_set, batch_size=train_cfg.batch_size, shuffle=True)
-    val_dataloader = torch.utils.data.DataLoader(val_set, batch_size=train_cfg.batch_size, shuffle=False)
 
-    loss_fn = torch.nn.CrossEntropyLoss()
-    optimizer = torch.optim.Adam(model.parameters(), lr=train_cfg.lr)
+    # W&B Logger (Lightning-managed run)
+    resolved_cfg = OmegaConf.to_container(config, resolve=True)
+    wandb_logger = WandbLogger(
+        project="MLOps_course",
+        config=resolved_cfg,
+        log_model="all",  # logs checkpoints as artifacts
+        save_dir=hydra_path,
+    )
 
-    statistics: dict = {"train_loss": [], "train_accuracy": []}
-    for epoch in range(train_cfg.epochs):
-        model.train()
+    # Checkpointing
+    ckpt_dir = os.path.join(hydra_path, "checkpoints")
+    checkpoint_callback = ModelCheckpoint(
+        dirpath=ckpt_dir,
+        filename="best",
+        monitor="val_loss",
+        mode="min",
+        save_top_k=1,
+    )
 
-        preds, targets = [], []
-        for i, (img, target) in enumerate(train_dataloader):
-            img, target = img.to(DEVICE), target.to(DEVICE)
-            optimizer.zero_grad()
-            y_pred = model(img)
-            loss = loss_fn(y_pred, target)
-            loss.backward()
-            optimizer.step()
-            statistics["train_loss"].append(loss.item())
+    early_stopping_callback = EarlyStopping(
+        monitor="val_loss", 
+        patience=3, 
+        verbose=True, 
+        mode="min"
+    )
 
-            accuracy = (y_pred.argmax(dim=1) == target).float().mean().item()
-            statistics["train_accuracy"].append(accuracy)
-            wandb.log({"train_loss": loss.item(), "train_accuracy": accuracy})
+    # Trainer device configuration (handles cuda/mps/cpu)
+    if torch.cuda.is_available():
+        accelerator = "cuda"
+        devices = 1
+    elif torch.backends.mps.is_available():
+        accelerator = "mps"
+        devices = 1
+    else:
+        accelerator = "cpu"
+        devices = 1
 
-            preds.append(y_pred.detach().cpu())
-            targets.append(target.detach().cpu())
+    trainer = Trainer(
+        max_epochs=int(train_cfg.epochs),
+        logger=wandb_logger,
+        callbacks=[checkpoint_callback, early_stopping_callback],
+        accelerator=accelerator,
+        devices=devices,
+        default_root_dir=hydra_path,
+        log_every_n_steps=10,
+        limit_train_batches=0.2,
+        precision="16-mixed",
+        profiler="simple"
+    )
 
-            if i % 100 == 0:
-                logger.info(f"Epoch {epoch}, iter {i}, loss: {loss.item()}")
+    trainer.fit(model, train_dataloaders=train_loader, val_dataloaders=val_loader)
 
-                # add a plot of the input images
-                grid = torchvision.utils.make_grid(img[:5].detach().cpu(), nrow=5, normalize=True)
-                wandb.log({"images": wandb.Image(grid, caption="Input images")})
+    best_ckpt = checkpoint_callback.best_model_path
+    loguru_logger.info(f"Best checkpoint: {best_ckpt}")
 
-                # add a plot of histogram of the gradients
-                grads = torch.cat([p.grad.flatten() for p in model.parameters() if p.grad is not None], 0).cpu()
-                wandb.log({"gradients": wandb.Histogram(grads)})
+    # Save a final model file (state_dict) and log as a W&B artifact
+    os.makedirs(os.path.dirname(train_cfg.output_file), exist_ok=True)
+    torch.save(model.state_dict(), train_cfg.output_file)
 
-        # add a custom matplotlib plot of the ROC curves
-        preds = torch.cat(preds, 0)
-        probs = torch.softmax(preds, dim=1)
-        targets = torch.cat(targets, 0)
-
-        fig, ax = plt.subplots(figsize=(8, 6))
-
-        for class_id in range(10):
-            one_hot = torch.zeros_like(targets)
-            one_hot[targets == class_id] = 1
-
-            RocCurveDisplay.from_predictions(
-                one_hot.numpy(),                 # sklearn expects array-like
-                probs[:, class_id].numpy(),
-                name=f"class {class_id}",
-                ax=ax,
-            )
-
-        ax.set_title("ROC Curves (one-vs-rest)")
-        wandb.log({"roc": wandb.Image(fig)})
-
-        # Evaluate on validation set
-        model.eval()
-        val_preds, val_targets = [], []
-        val_loss = 0.0
-        with torch.no_grad():
-            for img, target in val_dataloader:
-                img, target = img.to(DEVICE), target.to(DEVICE)
-                y_pred = model(img)
-                loss = loss_fn(y_pred, target)
-                val_loss += loss.item() * img.size(0)
-                val_preds.append(y_pred.detach().cpu())
-                val_targets.append(target.detach().cpu())
-
-        if len(val_preds) > 0:
-            val_preds = torch.cat(val_preds, 0)
-            val_probs = torch.softmax(val_preds, dim=1)
-            val_targets = torch.cat(val_targets, 0)
-            val_loss = val_loss / len(val_set)
-
-            val_accuracy = accuracy_score(val_targets.numpy(), val_preds.argmax(dim=1).numpy())
-            val_precision = precision_score(val_targets.numpy(), val_preds.argmax(dim=1).numpy(), average="weighted")
-            val_recall = recall_score(val_targets.numpy(), val_preds.argmax(dim=1).numpy(), average="weighted")
-            val_f1 = f1_score(val_targets.numpy(), val_preds.argmax(dim=1).numpy(), average="weighted")
-
-            wandb.log({
-                "val_loss": val_loss,
-                "val_accuracy": val_accuracy,
-                "val_precision": val_precision,
-                "val_recall": val_recall,
-                "val_f1": val_f1,
-            })
-
-            logger.info(f"Epoch {epoch} validation - loss: {val_loss:.4f} acc: {val_accuracy:.4f} f1: {val_f1:.4f}")
-
-            # plot validation ROC (one-vs-rest)
-            fig_val, ax_val = plt.subplots(figsize=(8, 6))
-            num_classes = model_cfg.num_classes if hasattr(model_cfg, "num_classes") else 10
-            for class_id in range(num_classes):
-                one_hot = torch.zeros_like(val_targets)
-                one_hot[val_targets == class_id] = 1
-
-                RocCurveDisplay.from_predictions(
-                    one_hot.numpy(),
-                    val_probs[:, class_id].numpy(),
-                    name=f"class {class_id}",
-                    ax=ax_val,
-                )
-
-            ax_val.set_title("Validation ROC Curves (one-vs-rest)")
-            wandb.log({"val_roc": wandb.Image(fig_val)})
-
-            plt.close(fig_val)
-        
-        plt.close(fig)
-
-    final_accuracy = accuracy_score(targets, preds.argmax(dim=1))
-    final_precision = precision_score(targets, preds.argmax(dim=1), average="weighted")
-    final_recall = recall_score(targets, preds.argmax(dim=1), average="weighted")
-    final_f1 = f1_score(targets, preds.argmax(dim=1), average="weighted")
-
-    # first we save the model to a file then log it as an artifact
-    torch.save(model.state_dict(), "model.pth")
+    # Log model artifact with final metrics, using the underlying wandb run
+    run = wandb_logger.experiment
     artifact = wandb.Artifact(
         name="corrupt_mnist_model",
         type="model",
         description="A model trained to classify corrupt MNIST images",
-        metadata={"accuracy": final_accuracy, "precision": final_precision, "recall": final_recall, "f1": final_f1},
     )
-    artifact.add_file("model.pth")
+    artifact.add_file(best_ckpt)
     run.log_artifact(artifact)
 
-    os.makedirs(os.path.dirname(train_cfg.output_file), exist_ok=True)
-    torch.save(model.state_dict(), train_cfg.output_file)
-    fig, axs = plt.subplots(1, 2, figsize=(15, 5))
-    axs[0].plot(statistics["train_loss"])
-    axs[0].set_title("Train loss")
-    axs[1].plot(statistics["train_accuracy"])
-    axs[1].set_title("Train accuracy")
-    os.makedirs("reports/figures", exist_ok=True)
-    fig.savefig("reports/figures/training_statistics.png")
-
-    logger.info("Training complete")
+    loguru_logger.info("Training complete")
 
 if __name__ == "__main__":
     train()
