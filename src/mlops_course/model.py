@@ -1,8 +1,9 @@
-from lightning import LightningModule
 import torch
-from torch import nn, optim
 import torchmetrics
 import torchvision
+from lightning import LightningModule
+from torch import nn, optim
+
 import wandb
 
 
@@ -21,7 +22,7 @@ class SimpleModel(LightningModule):
     ) -> None:
         super().__init__()
         self.save_hyperparameters()
-        
+
         self.conv1 = nn.Conv2d(channels_in, hidden_dims[0], kernel_size, stride)
         self.conv2 = nn.Conv2d(hidden_dims[0], hidden_dims[1], kernel_size, stride)
         self.conv3 = nn.Conv2d(hidden_dims[1], hidden_dims[2], kernel_size, stride)
@@ -43,7 +44,7 @@ class SimpleModel(LightningModule):
         x = torch.flatten(x, 1)
         x = self.dropout(x)
         return self.fc1(x)
-    
+
     def evaluate(self, batch, stage=None):
         img, target = batch
         logits = self(img)
@@ -54,9 +55,9 @@ class SimpleModel(LightningModule):
         if stage:
             self.log(f"{stage}_loss", loss, prog_bar=True)
             self.log(f"{stage}_acc", acc, prog_bar=True)
-        
+
         return loss
-    
+
     def training_step(self, batch, batch_idx):
         """Training step."""
         if batch_idx % 200 == 0 and self.logger is not None and hasattr(self.logger, "experiment"):
@@ -70,7 +71,7 @@ class SimpleModel(LightningModule):
 
     def validation_step(self, batch, batch_idx):
         return self.evaluate(batch, "val")
-    
+
     def test_step(self, batch, batch_idx):
         return self.evaluate(batch, "test")
 

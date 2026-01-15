@@ -3,20 +3,21 @@ import os
 
 import hydra
 import matplotlib.pyplot as plt
-from loguru import logger as loguru_logger
 import torch
 from lightning import Trainer, seed_everything
-from lightning.pytorch.callbacks import ModelCheckpoint, EarlyStopping
+from lightning.pytorch.callbacks import EarlyStopping, ModelCheckpoint
 from lightning.pytorch.loggers import WandbLogger
+from loguru import logger as loguru_logger
 from omegaconf import DictConfig, OmegaConf
-import wandb
 
+import wandb
 from mlops_course.data import corrupt_mnist
 from mlops_course.model import SimpleModel
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu")
 
 log = logging.getLogger(__name__)
+
 
 @hydra.main(version_base=None, config_path=f"{os.getcwd()}/configs", config_name="defaults.yaml")
 def train(config: DictConfig) -> None:
@@ -34,7 +35,7 @@ def train(config: DictConfig) -> None:
     train_loader = torch.utils.data.DataLoader(train_set, batch_size=train_cfg.batch_size, shuffle=True)
     val_loader = torch.utils.data.DataLoader(val_set, batch_size=train_cfg.batch_size, shuffle=False)
 
-    # Model 
+    # Model
     model = SimpleModel(
         channels_in=model_cfg.channels_in,
         hidden_dims=model_cfg.hidden_dims,
@@ -44,7 +45,6 @@ def train(config: DictConfig) -> None:
         dropout_rate=model_cfg.dropout_rate,
         lr=train_cfg.lr,
     )
-
 
     # W&B Logger (Lightning-managed run)
     resolved_cfg = OmegaConf.to_container(config, resolve=True)
@@ -66,12 +66,7 @@ def train(config: DictConfig) -> None:
         save_top_k=1,
     )
 
-    early_stopping_callback = EarlyStopping(
-        monitor="val_loss", 
-        patience=3, 
-        verbose=True, 
-        mode="min"
-    )
+    early_stopping_callback = EarlyStopping(monitor="val_loss", patience=3, verbose=True, mode="min")
 
     # Trainer device configuration (handles cuda/mps/cpu)
     if torch.cuda.is_available():
@@ -120,6 +115,7 @@ def train(config: DictConfig) -> None:
     )
 
     loguru_logger.info("Training complete")
+
 
 if __name__ == "__main__":
     train()

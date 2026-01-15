@@ -5,7 +5,9 @@ import torch
 import torchvision
 from lightning.pytorch.callbacks import Callback
 from sklearn.metrics import RocCurveDisplay
+
 import wandb
+
 
 class WandbExtrasCallback(Callback):
     def __init__(self, log_every_n_steps: int = 100, num_classes: int = 10) -> None:
@@ -25,7 +27,9 @@ class WandbExtrasCallback(Callback):
 
         # log via the active W&B experiment owned by WandbLogger
         if trainer.logger and hasattr(trainer.logger, "experiment"):
-            trainer.logger.experiment.log({"images": wandb.Image(grid, caption="Input images")}, step=trainer.global_step)
+            trainer.logger.experiment.log(
+                {"images": wandb.Image(grid, caption="Input images")}, step=trainer.global_step
+            )
 
         # Gradient histogram (MPS/CUDA -> CPU first)
         grads = []
@@ -36,7 +40,9 @@ class WandbExtrasCallback(Callback):
             g = torch.cat(grads).cpu().numpy()
             trainer.logger.experiment.log({"gradients": wandb.Histogram(g)}, step=trainer.global_step)
 
-    def on_validation_batch_end(self, trainer, pl_module, outputs, batch, batch_idx: int, dataloader_idx: int = 0) -> None:
+    def on_validation_batch_end(
+        self, trainer, pl_module, outputs, batch, batch_idx: int, dataloader_idx: int = 0
+    ) -> None:
         self._val_logits.append(outputs["logits"].detach().cpu())
         self._val_targets.append(outputs["targets"].detach().cpu())
 
