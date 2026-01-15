@@ -18,7 +18,7 @@ def load_model(model_checkpoint: str):
     logdir = tempfile.mkdtemp()
     artifact.download(root=logdir)
     file_name = artifact.files()[0].name
-    return SimpleModel.load_from_checkpoint(f"{logdir}/{file_name}")
+    return SimpleModel.load_from_checkpoint(f"{logdir}/{file_name}", weights_only=False)
 
 
 def test_model_speed():
