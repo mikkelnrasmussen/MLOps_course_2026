@@ -1,10 +1,17 @@
 import os
+from typing import List
 
 import typer
 import wandb
 
+app = typer.Typer()
 
-def link_model(artifact_path: str, aliases: list[str] = ["staging"]) -> None:
+
+@app.command()
+def link_model(
+    artifact_path: str = typer.Argument(...),
+    alias: List[str] = typer.Option(["staging"], "--alias", "-a", help="Aliases to apply; repeatable."),
+) -> None:
     """
     Stage a specific model to the model registry.
 
@@ -19,20 +26,21 @@ def link_model(artifact_path: str, aliases: list[str] = ["staging"]) -> None:
     """
     if artifact_path == "":
         typer.echo("No artifact path provided. Exiting.")
-        return
+        raise typer.Exit(code=0)
 
     api = wandb.Api(  # type: ignore[attr-defined]
-        api_key=os.getenv("WANDB_API_KEY"),
-        overrides={"entity": os.getenv("WANDB_ENTITY"), "project": os.getenv("WANDB_PROJECT")},
+        api_key=os.environ["WANDB_API_KEY"],
+        overrides={"entity": os.environ["WANDB_ENTITY"], "project": os.environ["WANDB_PROJECT"]},
     )
+
     _, _, artifact_name_version = artifact_path.split("/")
     artifact_name, _ = artifact_name_version.split(":")
 
     artifact = api.artifact(artifact_path)
-    artifact.link(target_path=f"{os.getenv('WANDB_ENTITY')}/model-registry/{artifact_name}", aliases=aliases)
+    artifact.link(target_path=f"{os.environ['WANDB_ENTITY']}/model-registry/{artifact_name}", aliases=alias)
     artifact.save()
-    typer.echo(f"Artifact {artifact_path} linked to {aliases}")
+    typer.echo(f"Artifact {artifact_path} linked to {alias}")
 
 
 if __name__ == "__main__":
-    typer.run(link_model)
+    app()
