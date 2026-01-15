@@ -63,6 +63,12 @@ def train_vae(ctx: Context) -> None:
 
 
 @task
+def data_stats(ctx: Context) -> None:
+    """Compute dataset statistics."""
+    ctx.run(f"uv run src/{PROJECT_NAME}/dataset_statistics.py --datadir data/processed", echo=True, pty=not WINDOWS)
+
+
+@task
 def evaluate(ctx: Context) -> None:
     """Evaluate model."""
     ctx.run(f"uv run src/{PROJECT_NAME}/evaluate.py models/model.pth", echo=True, pty=not WINDOWS)
