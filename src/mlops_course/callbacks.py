@@ -3,10 +3,9 @@ from __future__ import annotations
 import matplotlib.pyplot as plt
 import torch
 import torchvision  # type: ignore[import-untyped]
+import wandb
 from lightning.pytorch.callbacks import Callback
 from sklearn.metrics import RocCurveDisplay  # type: ignore[import-untyped]
-
-import wandb
 
 
 class WandbExtrasCallback(Callback):

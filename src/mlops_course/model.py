@@ -1,10 +1,9 @@
 import torch
 import torchmetrics
 import torchvision  # type: ignore[import-untyped]
+import wandb
 from lightning import LightningModule
 from torch import nn, optim
-
-import wandb
 
 
 class SimpleModel(LightningModule):

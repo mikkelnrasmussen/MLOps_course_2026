@@ -4,6 +4,7 @@ import os
 import hydra
 import matplotlib.pyplot as plt
 import torch
+import wandb
 from hydra.core.hydra_config import HydraConfig  # type: ignore[import-untyped]
 from lightning import Trainer, seed_everything
 from lightning.pytorch.callbacks import EarlyStopping, ModelCheckpoint
@@ -11,7 +12,6 @@ from lightning.pytorch.loggers import WandbLogger
 from loguru import logger as loguru_logger
 from omegaconf import DictConfig, OmegaConf
 
-import wandb
 from mlops_course.data import corrupt_mnist
 from mlops_course.model import SimpleModel
 
