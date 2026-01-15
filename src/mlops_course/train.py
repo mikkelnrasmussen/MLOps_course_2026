@@ -11,7 +11,7 @@ from lightning.pytorch.loggers import WandbLogger
 from loguru import logger as loguru_logger
 from omegaconf import DictConfig, OmegaConf
 
-from mlops_course.data import corrupt_mnist
+from mlops_course.dataset import MnistDataset
 from mlops_course.model import SimpleModel
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu")
@@ -27,11 +27,24 @@ def train(config: DictConfig) -> None:
     log.info(f"configuration:\n{OmegaConf.to_yaml(config)}")
     model_cfg = config.model
     train_cfg = config.training
+    data_cfg = config.dataset
 
     seed_everything(train_cfg.seed, workers=True)
 
     # Data
-    train_set, val_set = corrupt_mnist()
+    full_train_set = MnistDataset(data_folder=data_cfg.data_folder, train=True)
+
+    # Train/val split
+    val_fraction = train_cfg.val_fraction
+    val_size = int(len(full_train_set) * val_fraction)
+    train_size = len(full_train_set) - val_size
+
+    train_set, val_set = torch.utils.data.random_split(
+        full_train_set,
+        lengths=[train_size, val_size],
+        generator=torch.Generator().manual_seed(train_cfg.seed),
+    )
+
     train_loader = torch.utils.data.DataLoader(train_set, batch_size=train_cfg.batch_size, shuffle=True)
     val_loader = torch.utils.data.DataLoader(val_set, batch_size=train_cfg.batch_size, shuffle=False)
 
