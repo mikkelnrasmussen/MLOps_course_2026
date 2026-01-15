@@ -2,8 +2,8 @@ import os.path
 
 import pytest
 import torch
-from mlops_course.data import corrupt_mnist
 
+from mlops_course.data import corrupt_mnist
 from tests import _PATH_DATA
 
 
