@@ -2,9 +2,9 @@ from __future__ import annotations
 
 import matplotlib.pyplot as plt
 import torch
-import torchvision
+import torchvision  # type: ignore[import-untyped]
 from lightning.pytorch.callbacks import Callback
-from sklearn.metrics import RocCurveDisplay
+from sklearn.metrics import RocCurveDisplay  # type: ignore[import-untyped]
 
 import wandb
 
@@ -37,7 +37,7 @@ class WandbExtrasCallback(Callback):
             if p.grad is not None:
                 grads.append(p.grad.detach().flatten())
         if grads:
-            g = torch.cat(grads).cpu().numpy()
+            g = torch.cat(grads).cpu().numpy().tolist()
             trainer.logger.experiment.log({"gradients": wandb.Histogram(g)}, step=trainer.global_step)
 
     def on_validation_batch_end(

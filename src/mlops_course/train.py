@@ -4,6 +4,7 @@ import os
 import hydra
 import matplotlib.pyplot as plt
 import torch
+from hydra.core.hydra_config import HydraConfig  # type: ignore[import-untyped]
 from lightning import Trainer, seed_everything
 from lightning.pytorch.callbacks import EarlyStopping, ModelCheckpoint
 from lightning.pytorch.loggers import WandbLogger
@@ -21,7 +22,7 @@ log = logging.getLogger(__name__)
 
 @hydra.main(version_base=None, config_path=f"{os.getcwd()}/configs", config_name="defaults.yaml")
 def train(config: DictConfig) -> None:
-    hydra_path = hydra.core.hydra_config.HydraConfig.get().runtime.output_dir
+    hydra_path = HydraConfig.get().runtime.output_dir
     loguru_logger.add(os.path.join(hydra_path, "train.log"))
 
     log.info(f"configuration:\n{OmegaConf.to_yaml(config)}")

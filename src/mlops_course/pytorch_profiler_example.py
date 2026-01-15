@@ -1,5 +1,5 @@
 import torch
-import torchvision.models as models
+import torchvision.models as models  # type: ignore[import-untyped]
 from torch.profiler import ProfilerActivity, profile, tensorboard_trace_handler
 
 model = models.resnet18()
