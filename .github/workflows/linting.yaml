@@ -24,7 +24,7 @@ jobs:
         run: |
           uv sync --locked --dev
           uv tree
-        
+
       - name: Show Ruff version
         run: uv run ruff --version
 
