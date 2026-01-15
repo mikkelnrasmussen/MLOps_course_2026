@@ -30,6 +30,18 @@ jobs:
         uv sync --locked --dev
         uv tree
 
+    - name: Start ssh-agent and add key
+      uses: webfactory/ssh-agent@v0.9.0
+      with:
+        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+    - name: Add server to known_hosts
+      run: |
+        mkdir -p ~/.ssh
+        chmod 700 ~/.ssh
+        echo "${{ secrets.SSH_KNOWN_HOSTS }}" >> ~/.ssh/known_hosts
+        chmod 600 ~/.ssh/known_hosts
+
     - name: Pull data
       run: |
         uv run dvc pull --no-run-cache
