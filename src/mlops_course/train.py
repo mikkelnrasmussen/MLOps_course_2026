@@ -2,7 +2,6 @@ import logging
 import os
 
 import hydra
-import matplotlib.pyplot as plt
 import torch
 import wandb
 from hydra.core.hydra_config import HydraConfig  # type: ignore[import-untyped]
