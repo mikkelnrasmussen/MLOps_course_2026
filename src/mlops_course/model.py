@@ -1,6 +1,6 @@
 import torch
 import torchmetrics
-import torchvision
+import torchvision  # type: ignore[import-untyped]
 from lightning import LightningModule
 from torch import nn, optim
 
