@@ -49,6 +49,7 @@ def train(config: DictConfig) -> None:
     # W&B Logger (Lightning-managed run)
     resolved_cfg = OmegaConf.to_container(config, resolve=True)
     wandb_logger = WandbLogger(
+        entity="minra-technical-university-of-denmark",
         project="MLOps_course",
         config=resolved_cfg,
         log_model="all",  # logs checkpoints as artifacts
@@ -92,8 +93,6 @@ def train(config: DictConfig) -> None:
         default_root_dir=hydra_path,
         log_every_n_steps=10,
         limit_train_batches=0.2,
-        precision="16-mixed",
-        profiler="simple"
     )
 
     trainer.fit(model, train_dataloaders=train_loader, val_dataloaders=val_loader)
@@ -108,12 +107,17 @@ def train(config: DictConfig) -> None:
     # Log model artifact with final metrics, using the underlying wandb run
     run = wandb_logger.experiment
     artifact = wandb.Artifact(
-        name="corrupt_mnist_model",
+        name="corrupt_mnist_models",
         type="model",
         description="A model trained to classify corrupt MNIST images",
     )
     artifact.add_file(best_ckpt)
     run.log_artifact(artifact)
+    run.link_artifact(
+        artifact=artifact,
+        target_path="wandb-registry-Model/corrupt_mnist_models",
+        aliases=["latest"],
+    )
 
     loguru_logger.info("Training complete")
 
