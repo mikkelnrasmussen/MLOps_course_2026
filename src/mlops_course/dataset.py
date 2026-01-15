@@ -8,7 +8,7 @@ from torch import Tensor
 from torch.utils.data import Dataset
 
 if TYPE_CHECKING:
-    import torchvision.transforms.v2 as transforms
+    import torchvision.transforms.v2 as transforms  # type: ignore[import-untyped]
 
 
 class MnistDataset(Dataset):
