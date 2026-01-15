@@ -69,6 +69,9 @@ explicit = true
 line-length = 120
 lint.select = ["I"]
 
+[tool.ruff.lint.isort]
+known-third-party = ["wandb"]
+
 [tool.coverage.run]
 source = ["mlops_course"]
 omit = [
