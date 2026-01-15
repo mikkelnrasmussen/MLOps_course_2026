@@ -71,7 +71,15 @@ line-length = 120
 lint.select = ["I"]
 
 [tool.coverage.run]
-omit = ["tests/*"]
+source = ["mlops_course"]
+omit = [
+  "tests/*",
+  "*/.venv/*",
+  "*/site-packages/*",
+  "/tmp/*",
+  "/private/var/folders/*",
+  "*/_remote_module_non_scriptable.py",
+]
 
 [project.scripts]
 train = "mlops_course.train:train"
