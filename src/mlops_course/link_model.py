@@ -37,7 +37,10 @@ def link_model(
     artifact_name, _ = artifact_name_version.split(":")
 
     artifact = api.artifact(artifact_path)
-    artifact.link(target_path=f"{os.environ['WANDB_ENTITY']}/model-registry/{artifact_name}", aliases=alias)
+    artifact.link(
+        target_path=f"{os.environ['WANDB_ENTITY']}/wandb-registry-Model/corrupt_mnist_models/{artifact_name}",
+        aliases=alias,
+    )
     artifact.save()
     typer.echo(f"Artifact {artifact_path} linked to {alias}")
 
