@@ -2,4 +2,5 @@ seed: 67
 batch_size: 32
 lr: 1e-3
 epochs: 10
+val_fraction: 0.1
 output_file: "models/model.pth"

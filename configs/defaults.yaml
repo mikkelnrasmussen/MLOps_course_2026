@@ -3,6 +3,7 @@ defaults:
   - _self_
   - model: baseline_model
   - training: default
+  - dataset: corupt_mnist
 
 hydra:
   run:
