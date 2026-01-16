@@ -2,6 +2,7 @@ import os
 import tempfile
 import time
 
+import pytest
 import torch
 import wandb
 
@@ -21,6 +22,7 @@ def load_model(model_checkpoint: str):
     return SimpleModel.load_from_checkpoint(f"{logdir}/{file_name}", weights_only=False)
 
 
+@pytest.mark.performance
 def test_model_speed():
     model = load_model(os.getenv("MODEL_NAME"))
     start = time.time()

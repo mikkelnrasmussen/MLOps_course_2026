@@ -83,6 +83,11 @@ omit = [
   "*/_remote_module_non_scriptable.py",
 ]
 
+[tool.pytest.ini_options]
+markers = [
+  "performance: performance / integration tests that require external services",
+]
+
 [project.scripts]
 train = "mlops_course.train:train"
 evaluate = "mlops_course.evaluate:evaluate"
