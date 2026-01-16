@@ -43,7 +43,7 @@ def link_model(
     target_path = f"wandb-registry-{REGISTRY_NAME}/{COLLECTION_NAME}"
 
     artifact.link(
-        target_path=f"{target_path}/{artifact_name}",
+        target_path=f"{target_path}",
         aliases=alias,
     )
     artifact.save()
