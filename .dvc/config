@@ -1,4 +1,5 @@
 [core]
-    remote = storage
-['remote "storage"']
-    url = ssh://minra@login.healthtech.dtu.dk/home/people/minra/mlops_course/storage
+    remote = remote_storage
+['remote "remote_storage"']
+    url = gs://dtu_mlops_data_bucket_1/
+    version_aware = true
