@@ -1,0 +1,19 @@
+steps:
+- name: 'gcr.io/cloud-builders/docker'
+  id: 'Build container image'
+  args: [
+    'build',
+    '.',
+    '-t',
+    'europe-west1-docker.pkg.dev/$PROJECT_ID/mlops-container-registry/digits-classifier:latest',
+    '-f',
+    'dockerfiles/digit_classifier.dockerfile'
+  ]
+- name: 'gcr.io/cloud-builders/docker'
+  id: 'Push container image'
+  args: [
+    'push',
+    'europe-west1-docker.pkg.dev/$PROJECT_ID/mlops-container-registry/digits-classifier:latest'
+  ]
+options:
+  logging: CLOUD_LOGGING_ONLY
