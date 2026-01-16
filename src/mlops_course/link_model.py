@@ -37,8 +37,13 @@ def link_model(
     artifact_name, _ = artifact_name_version.split(":")
 
     artifact = api.artifact(artifact_path)
+
+    REGISTRY_NAME = "Model"  # MUST match your Registry name in W&B UI
+    COLLECTION_NAME = "corrupt_mnist_models"
+    target_path = f"wandb-registry-{REGISTRY_NAME}/{COLLECTION_NAME}"
+
     artifact.link(
-        target_path=f"{os.environ['WANDB_ENTITY']}/wandb-registry-Model/corrupt_mnist_models/{artifact_name}",
+        target_path=f"{target_path}/{artifact_name}",
         aliases=alias,
     )
     artifact.save()
