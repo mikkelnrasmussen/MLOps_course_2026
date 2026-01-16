@@ -1,5 +1,5 @@
-from sklearn import datasets, metrics, svm
-from sklearn.model_selection import train_test_split
+from sklearn import datasets, metrics, svm  # type: ignore[import-untyped]
+from sklearn.model_selection import train_test_split  # type: ignore[import-untyped]
 
 if __name__ == "__main__":
     digits = datasets.load_digits()
