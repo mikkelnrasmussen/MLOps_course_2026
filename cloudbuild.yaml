@@ -5,15 +5,28 @@ steps:
     'build',
     '.',
     '-t',
-    'europe-west1-docker.pkg.dev/$PROJECT_ID/mlops-container-registry/corrupt-mnist-train:latest',
+    'europe-west1-docker.pkg.dev/dtumlops-484510/cloud-run-source-deploy/gcp_test_app:latest',
     '-f',
-    'dockerfiles/train.dockerfile'
+    'dockerfiles/simple_fastapi_app.dockerfile'
   ]
 - name: 'gcr.io/cloud-builders/docker'
   id: 'Push container image'
   args: [
     'push',
-    'europe-west1-docker.pkg.dev/$PROJECT_ID/mlops-container-registry/corrupt-mnist-train:latest'
+    'europe-west1-docker.pkg.dev/dtumlops-484510/cloud-run-source-deploy/gcp_test_app:latest'
+  ]
+- name: 'gcr.io/cloud-builders/gcloud'
+  id: 'Deploy to Cloud Run'
+  args: [
+    'run',
+    'deploy',
+    '<service-name>',
+    '--image',
+    'europe-west1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/gcp_test_app:latest',
+    '--region',
+    'europe-west1',
+    '--platform',
+    'managed',
   ]
 options:
   logging: CLOUD_LOGGING_ONLY
