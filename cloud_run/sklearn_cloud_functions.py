@@ -2,8 +2,8 @@
 import pickle
 
 import numpy as np
-from sklearn import datasets
-from sklearn.neighbors import KNeighborsClassifier
+from sklearn import datasets  # type: ignore[import-untyped]
+from sklearn.neighbors import KNeighborsClassifier  # type: ignore[import-untyped]
 
 iris_x, iris_y = datasets.load_iris(return_X_y=True)
 
