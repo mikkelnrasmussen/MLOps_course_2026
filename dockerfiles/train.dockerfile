@@ -24,6 +24,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 
 # Copy application code and runtime data
 COPY src/ ./src/
+COPY configs/ ./configs/
 COPY data/ ./data/
 
 # Install the project itself (also benefits from the same cache mount)
