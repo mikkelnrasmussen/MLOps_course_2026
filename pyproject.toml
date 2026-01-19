@@ -29,7 +29,9 @@ dependencies = [
     "lightning>=2.6.0",
     "loguru>=0.7.3",
     "matplotlib>=3.10.8",
+    "opencv-python>=4.13.0.90",
     "pygit2>=1.19.1",
+    "python-multipart>=0.0.21",
     "requests>=2.32.5",
     "scikit-learn>=1.8.0",
     "snakeviz>=2.2.2",
@@ -37,8 +39,9 @@ dependencies = [
     "torch==2.6.0",
     "torch-tb-profiler>=0.4.3",
     "torchvision>=0.21.0",
+    "transformers>=4.57.6",
     "typer>=0.15.4",
-    "uvicorn==0.34.0",
+    "uvicorn[standard]==0.34.0",
     "wandb>=0.24.0",
 ]
 
