@@ -1,12 +1,18 @@
 from __future__ import annotations
 
 from contextlib import asynccontextmanager
-from typing import Any
+from typing import Any, cast
 
 import torch
 from fastapi import FastAPI, File, UploadFile
 from PIL import Image
-from transformers import AutoTokenizer, VisionEncoderDecoderModel, ViTFeatureExtractor
+from PIL.Image import Image as PILImage
+from transformers import (
+    AutoTokenizer,
+    PreTrainedTokenizerBase,
+    VisionEncoderDecoderModel,
+    ViTFeatureExtractor,
+)
 
 
 @asynccontextmanager
@@ -26,7 +32,7 @@ async def lifespan(app: FastAPI):
     # Store on app.state (typed as Any), avoids "Name not defined" errors
     app.state.model = model
     app.state.feature_extractor = feature_extractor
-    app.state.tokenizer = tokenizer
+    app.state.tokenizer = cast(PreTrainedTokenizerBase, tokenizer)
     app.state.device = device
     app.state.gen_kwargs = gen_kwargs
 
@@ -46,14 +52,14 @@ app = FastAPI(lifespan=lifespan)
 @app.post("/caption/")
 async def caption(data: UploadFile = File(...)) -> list[str]:
     """Generate a caption for an image."""
-    i_image = Image.open(data.file)
+    i_image: PILImage = Image.open(data.file)
     if i_image.mode != "RGB":
-        i_image = i_image.convert(mode="RGB")
+        i_image = i_image.convert("RGB")
 
     # Pull from app.state
     model: VisionEncoderDecoderModel = app.state.model
     feature_extractor: ViTFeatureExtractor = app.state.feature_extractor
-    tokenizer: AutoTokenizer = app.state.tokenizer
+    tokenizer: PreTrainedTokenizerBase = app.state.tokenizer
     device: torch.device = app.state.device
     gen_kwargs: dict[str, Any] = app.state.gen_kwargs
 
