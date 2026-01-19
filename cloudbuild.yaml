@@ -5,15 +5,15 @@ steps:
     'build',
     '.',
     '-t',
-    'europe-west1-docker.pkg.dev/$PROJECT_ID/mlops-container-registry/digits-classifier:latest',
+    'europe-west1-docker.pkg.dev/$PROJECT_ID/mlops-container-registry/corrupt-mnist-train:latest',
     '-f',
-    'dockerfiles/digit_classifier.dockerfile'
+    'dockerfiles/train.dockerfile'
   ]
 - name: 'gcr.io/cloud-builders/docker'
   id: 'Push container image'
   args: [
     'push',
-    'europe-west1-docker.pkg.dev/$PROJECT_ID/mlops-container-registry/digits-classifier:latest'
+    'europe-west1-docker.pkg.dev/$PROJECT_ID/mlops-container-registry/corrupt-mnist-train:latest'
   ]
 options:
   logging: CLOUD_LOGGING_ONLY
