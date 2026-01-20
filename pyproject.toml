@@ -87,17 +87,6 @@ explicit = true
 line-length = 120
 lint.select = ["I"]
 
-[tool.mypy]
-python_version = "3.12"
-strict = true
-warn_return_any = true
-warn_unused_ignores = true
-
-[[tool.mypy.overrides]]
-module = ["torchvision.*"]
-ignore_missing_imports = true
-
-
 [tool.coverage.run]
 source = ["mlops_course"]
 omit = [
