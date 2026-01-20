@@ -1,5 +1,5 @@
 import numpy as np
-import onnxruntime as rt
+import onnxruntime as rt  # type: ignore[import-untyped]
 
 ort_session = rt.InferenceSession("resnet18.onnx")
 input_names = [i.name for i in ort_session.get_inputs()]

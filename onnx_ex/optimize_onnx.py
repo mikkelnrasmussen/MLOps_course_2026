@@ -1,4 +1,4 @@
-import onnxruntime as rt
+import onnxruntime as rt  # type: ignore[import-untyped]
 
 sess_options = rt.SessionOptions()
 

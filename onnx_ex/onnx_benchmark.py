@@ -2,11 +2,11 @@ import sys
 import time
 from statistics import mean, stdev
 
-import onnxruntime as ort
+import onnxruntime as ort  # type: ignore[import-untyped]
 import pytorch_lightning as pl
 import torch
-import torchvision
-from torchvision.models import ResNet18_Weights
+import torchvision  # type: ignore[import-untyped]
+from torchvision.models import ResNet18_Weights  # type: ignore[import-untyped]
 
 
 def timing_decorator(func, function_repeat: int = 10, timing_repeat: int = 5):
@@ -45,7 +45,7 @@ framework = "pytorch-ligtning"
 if framework == "pytorch":
     torch.onnx.export(
         model,
-        dummy_input,
+        (dummy_input,),
         "resnet18.onnx",
         input_names=["input.1"],
         dynamic_axes={"input.1": {0: "batch_size", 2: "height", 3: "width"}},
@@ -54,7 +54,7 @@ elif framework == "pytorch-ligtning":
     model.to_onnx(
         file_path="resnet18.onnx",
         input_sample=dummy_input,
-        input_names=["input"],
+        input_names=["input.1"],
         output_names=["output"],
         dynamic_axes={
             "input.1": {0: "batch_size", 2: "height", 3: "width"},

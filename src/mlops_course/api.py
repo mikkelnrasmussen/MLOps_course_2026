@@ -1,6 +1,6 @@
 import os
 
-from fastapi import FastAPI, File, UploadFile
+from fastapi import FastAPI, File, HTTPException, UploadFile
 
 app = FastAPI()
 
@@ -22,11 +22,15 @@ FOLDER = "/gcs/fastapi_app/"
 
 @app.post("/upload/")
 async def upload_file(file: UploadFile = File(...)):
-    file_location = os.path.join(FOLDER, file.filename)
+    filename = file.filename
+    if filename is None:
+        raise HTTPException(status_code=400, detail="Uploaded file has no filename")
+
+    file_location = os.path.join(FOLDER, filename)
     with open(file_location, "wb") as f:
         contents = await file.read()
         f.write(contents)
-    return {"info": f"file '{file.filename}' saved at '{file_location}'"}
+    return {"info": f"file '{filename}' saved at '{file_location}'"}
 
 
 @app.get("/files/")

@@ -1,7 +1,7 @@
 import pytorch_lightning as pl
 import torch
-import torchvision
-from torchvision.models import ResNet18_Weights
+import torchvision  # type: ignore[import-untyped]
+from torchvision.models import ResNet18_Weights  # type: ignore[import-untyped]
 
 
 class LitModel(pl.LightningModule):

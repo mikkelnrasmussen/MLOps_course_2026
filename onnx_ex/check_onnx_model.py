@@ -9,7 +9,7 @@ def check_onnx_model(
     atol: float = 1e-05,
 ) -> None:
     import numpy as np
-    import onnxruntime as rt
+    import onnxruntime as rt  # type: ignore[import-untyped]
 
     ort_session = rt.InferenceSession(onnx_model_file)
     ort_inputs = {ort_session.get_inputs()[0].name: random_input.numpy()}
@@ -20,7 +20,7 @@ def check_onnx_model(
 
 
 if __name__ == "__main__":
-    import torchvision
+    import torchvision  # type: ignore[import-untyped]
 
     model = torchvision.models.resnet18(weights=None)
     model.eval()
@@ -28,7 +28,7 @@ if __name__ == "__main__":
 
     torch.onnx.export(
         model,
-        dummy_input,
+        (dummy_input,),
         "resnet18.onnx",
         input_names=["input"],
         dynamic_axes={"input": {0: "batch_size", 2: "height", 3: "width"}},

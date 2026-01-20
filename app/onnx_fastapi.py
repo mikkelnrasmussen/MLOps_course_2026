@@ -1,5 +1,5 @@
 import numpy as np
-import onnxruntime
+import onnxruntime  # type: ignore[import-untyped]
 from fastapi import FastAPI
 
 app = FastAPI()
