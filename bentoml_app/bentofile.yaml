@@ -1,0 +1,11 @@
+service: 'bentoml_service:ImageClassifierService'
+labels:
+  owner: bentoml-team
+  project: gallery
+include:
+- 'bentoml_service.py'
+- 'resnet18.onnx'
+python:
+  packages:
+    - onnxruntime
+    - numpy
