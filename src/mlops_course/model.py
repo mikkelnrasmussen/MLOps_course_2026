@@ -7,7 +7,17 @@ from torch import nn, optim
 
 
 class SimpleModel(LightningModule):
-    """My awesome model."""
+    """Simple CNN model.
+
+    Args:
+        channels_in: Number of input channels.
+        hidden_dims: List of hidden dimensions.
+        num_classes: Number of output classes.
+        kernel_size: Size of convolution kernel.
+        stride: Stride of convolution.
+        dropout_rate: Dropout rate.
+        lr: Learning rate.
+    """
 
     def __init__(
         self,
@@ -33,7 +43,14 @@ class SimpleModel(LightningModule):
         self.accuracy = torchmetrics.classification.Accuracy(task="multiclass", num_classes=num_classes)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """Forward pass."""
+        """Forward pass.
+
+        Args:
+            x: Input tensor expected to be of shape [B, C, H, W].
+
+        Returns:
+            Output tensor of shape [B, num_classes].
+        """
         x = torch.relu(self.conv1(x))
         x = torch.max_pool2d(x, 2, 2)
         x = torch.relu(self.conv2(x))
