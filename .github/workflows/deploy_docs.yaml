@@ -30,4 +30,4 @@ jobs:
         uv tree
 
     - name: Deploy docs
-      run: mkdocs gh-deploy --force
+      run: uv run mkdocs gh-deploy --force
